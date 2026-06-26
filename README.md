@@ -135,6 +135,4 @@ Interactive API docs available at: http://localhost:8000/docs
 
 For detailed Docker setup and troubleshooting, see [DOCKER_SETUP.md](./DOCKER_SETUP.md)
 
-## License
-
-MIT License
+HAPPY CODING !!!🫶🏻
