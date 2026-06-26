@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Database, Sparkles, Zap, Shield, ArrowRight, Code2 } from 'lucide-react';
+import { Database, Sparkles, Zap, Shield, ArrowRight, Code2, Mail, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const features = [
@@ -144,20 +144,76 @@ export default function HomePage() {
         className="mt-16 flex flex-wrap justify-center gap-8 text-center"
       >
         <div>
-          <div className="text-3xl font-bold text-primary">1000+</div>
+          <div className="text-3xl font-bold text-primary">100+</div>
           <div className="text-gray-500 text-sm">Queries Generated</div>
         </div>
         <div className="w-px bg-border"></div>
         <div>
-          <div className="text-3xl font-bold text-primary">99.9%</div>
+          <div className="text-3xl font-bold text-primary">99%</div>
           <div className="text-gray-500 text-sm">Accuracy</div>
         </div>
         <div className="w-px bg-border"></div>
         <div>
-          <div className="text-3xl font-bold text-primary">&lt;5s</div>
+          <div className="text-3xl font-bold text-primary">&lt;15s</div>
           <div className="text-gray-500 text-sm">Response Time</div>
         </div>
       </motion.div>
+
+      {/* About Me Footer */}
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="mt-20 mb-8 w-full max-w-4xl"
+      >
+        <div className="border-t border-border pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* About */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-300">Built by Shubham Rawat</p>
+                <p className="text-xs text-gray-500">Full Stack Developer</p>
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-4">
+              <a
+                href="https://github.com/shubham124rawat"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-gray-300 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://www.linkedin.com/in/shubham-rawat-0aa030355/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 rounded-lg bg-card border border-border text-sm font-medium text-gray-300 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
+              >
+                LinkedIn
+              </a>
+              <a
+                href="mailto:shubham124rawat@gmail.com"
+                className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/30 transition-all group"
+              >
+                <Mail className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+              </a>
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              © {new Date().getFullYear()} NanoQuery. Built with React, FastAPI & Google Gemini AI.
+            </p>
+          </div>
+        </div>
+      </motion.footer>
     </div>
   );
 }
