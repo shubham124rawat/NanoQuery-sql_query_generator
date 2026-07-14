@@ -239,11 +239,11 @@ async def execute_sql_query(request: QueryExecutionRequest):
     """
     Execute a SQL query and return results.
     
-    This endpoint provides safe SQL execution with:
+    This endpoint provides SQL execution with:
     - Runtime exception handling
-    - Destructive query protection
     - Clean result formatting
     - Execution time tracking
+    - Support for all DML (INSERT, UPDATE, DELETE) and DDL (CREATE, ALTER, DROP, TRUNCATE) commands
     
     Args:
         request: QueryExecutionRequest containing SQL query
@@ -261,25 +261,8 @@ async def execute_sql_query(request: QueryExecutionRequest):
                 detail="SQL query cannot be empty"
             )
         
-        # 🛡️ SECURITY FILTER: Block highly destructive operations
-        destructive_keywords = ['DROP', 'TRUNCATE', 'ALTER', 'GRANT', 'REVOKE']
-        sql_upper = sql.upper()
-        
-        for keyword in destructive_keywords:
-            if re.search(r'\b' + keyword + r'\b', sql_upper):
-                logger.warning(f"Security violation: Blocked {keyword} operation")
-                raise HTTPException(
-                    status_code=403,
-                    detail={
-                        "success": False,
-                        "error": f"Security violation: {keyword} operation blocked.",
-                        "blocked_operation": keyword,
-                        "message": "This operation is not permitted for security reasons."
-                    }
-                )
-        
         # Extract query type
-        query_type_match = re.match(r'^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE)',
+        query_type_match = re.match(r'^\s*(SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE|GRANT|REVOKE|SHOW|DESCRIBE|DESC)',
                                     sql, re.IGNORECASE)
         query_type = query_type_match.group(1).upper() if query_type_match else "UNKNOWN"
         
@@ -297,43 +280,45 @@ async def execute_sql_query(request: QueryExecutionRequest):
                 
                 logger.info(f"Auto-appended LIMIT 100 to SELECT query for memory safety")
         
-        # Check for destructive operations without WHERE clause
-        is_destructive = query_type in ['UPDATE', 'DELETE']
-        has_where_clause = re.search(r'\bWHERE\b', sql, re.IGNORECASE) is not None
-        
-        if is_destructive and not has_where_clause and not request.confirmed:
-            # UPDATE/DELETE without WHERE requires confirmation
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "error": f"{query_type} without WHERE clause detected",
-                    "warning": "This will affect all rows in the table. Set 'confirmed: true' to proceed.",
-                    "requires_confirmation": True,
-                    "query_type": query_type
-                }
-            )
-        
         # Execute the query
         db_service = get_db_service()
         start_time = time.time()
         
         try:
             # Determine if we should fetch results
-            fetch_results = query_type == 'SELECT'
+            fetch_results = query_type in ['SELECT', 'SHOW', 'DESCRIBE', 'DESC']
             
             with db_service.get_cursor() as cursor:
                 cursor.execute(sql)
                 
                 if fetch_results:
-                    # SELECT query - fetch results
+                    # SELECT/SHOW/DESCRIBE query - fetch results
                     rows = cursor.fetchall()
-                    columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                    
+                    # DictCursor returns list of dicts - keep it that way for frontend
+                    if rows and len(rows) > 0:
+                        if isinstance(rows[0], dict):
+                            # DictCursor - extract columns, keep rows as dicts
+                            columns = list(rows[0].keys())
+                            logger.info(f"Fetched {len(rows)} rows with columns: {columns}")
+                        elif isinstance(rows[0], tuple):
+                            # Tuple cursor - convert to dict format
+                            columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                            rows = [{col: val for col, val in zip(columns, row)} for row in rows]
+                        else:
+                            # Unknown format
+                            columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                    else:
+                        # Empty result set
+                        columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                        rows = []
+                    
                     row_count = len(rows)
                 else:
-                    # Modification query - just get affected count
+                    # Modification query (DML/DDL) - get affected count
                     rows = []
                     columns = []
-                    row_count = cursor.rowcount
+                    row_count = cursor.rowcount if cursor.rowcount > 0 else 0
             
             execution_time_ms = round((time.time() - start_time) * 1000, 2)
             

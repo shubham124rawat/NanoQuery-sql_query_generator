@@ -148,10 +148,7 @@ export default function HomePage() {
           <div className="text-gray-500 text-sm">Queries Generated</div>
         </div>
         <div className="w-px bg-border"></div>
-        <div>
-          <div className="text-3xl font-bold text-primary">99%</div>
-          <div className="text-gray-500 text-sm">Accuracy</div>
-        </div>
+        
         <div className="w-px bg-border"></div>
         <div>
           <div className="text-3xl font-bold text-primary">&lt;15s</div>
@@ -175,7 +172,7 @@ export default function HomePage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-300">Built by Shubham Rawat</p>
-                <p className="text-xs text-gray-500">Full Stack Developer</p>
+                
               </div>
             </div>
 
